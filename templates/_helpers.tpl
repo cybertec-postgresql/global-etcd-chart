@@ -208,3 +208,12 @@ etcd: disasterRecovery
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Return true if global cluster has addresses configured */}}
+{{- define "etcd.globalClusterConfigured" -}}
+{{- range .Values.globalCluster.members -}}
+{{- if or .address .externalName -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

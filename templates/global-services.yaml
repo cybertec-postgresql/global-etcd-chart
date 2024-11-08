@@ -1,0 +1,56 @@
+{{- if .Values.globalCluster.enabled }}
+{{- $myname := include "common.names.fullname" . }}
+{{- range .Values.globalCluster.members }}
+{{- if ne .name $myname }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: etcd
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}    
+spec:
+{{- if .externalName }}
+  type: ExternalName
+  externalName: {{ .externalName | quote }}
+  ports:
+    - name: peer
+      port: {{ $.Values.containerPorts.peer }}
+    - name: client
+      port: {{ coalesce $.Values.service.ports.client $.Values.service.port }}  
+{{- else }}
+  type: ClusterIP
+  ports:
+    - name: peer
+      port: {{ $.Values.containerPorts.peer }}
+    - name: client
+      port: {{ coalesce $.Values.service.ports.client $.Values.service.port }}
+{{- if .address }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: etcd
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+subsets:
+  - addresses:
+      - ip: "{{ .address }}"
+    ports:
+      - name: peer
+        port: {{ $.Values.containerPorts.peer }}
+      - name: client
+        port: {{ coalesce $.Values.service.ports.client $.Values.service.port }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

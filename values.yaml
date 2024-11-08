@@ -950,3 +950,23 @@ pdb:
   ## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
   ##
   maxUnavailable: ""
+
+## @section Global cluster setup
+##
+globalCluster:
+  ## @param globalCluster.enabled Turn on multi-kuberntes cluster deployment mode
+  enabled: false
+  ## List of members in the cluster, including this node. Each member name must
+  ## match the Helm deployment name on corresponding cluster. For each member the
+  ## way other members can access it must be defined. The definition can be either:
+  ## - externalName: creates an ExternalName service pointing to this DNS name.
+  ## - address: creates a ClusterIP service with an Endpoint pointing to this IP.
+  members: []
+  ## example:
+  ##  members:
+  ##    - name: etcd-n1
+  ##      externalName: dnsNameForN1
+  ##    - name: etcd-n2
+  ##      externalName: dnsNameForN2
+  ##    - name: etcd-n3
+  ##      address: 10.1.2.3
